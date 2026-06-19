@@ -1,0 +1,12 @@
+torch==2.1.0
+numpy<2.0.0
+jupyter
+tiktoken
+transformers
+peft
+fastapi
+redis
+jinja2
+wandb
+datasets
+uvicorn

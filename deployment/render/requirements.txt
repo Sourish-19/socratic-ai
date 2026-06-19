@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+openai
+diskcache
+python-dotenv
+PyPDF2
+python-docx
+python-pptx

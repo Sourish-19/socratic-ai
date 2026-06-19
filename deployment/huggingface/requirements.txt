@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+transformers
+torch
+accelerate
+spaces
+gradio
+diskcache
+PyPDF2
+python-docx
+python-pptx

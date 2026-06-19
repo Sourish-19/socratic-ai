@@ -1,0 +1,31 @@
+# Environments
+venv/
+env/
+.env
+
+# Model Checkpoints and Data
+ai_training/models/
+ai_training/data/
+ai_training/notebooks/
+offload/
+checkpoints/
+
+# Cache and Databases
+backend/session_cache/
+cache.db
+cache.db-shm
+cache.db-wal
+__pycache__/
+*.pyc
+
+# Logs
+logs/
+*.log
+*.txt
+!requirements.txt
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+.DS_Store
+models/
