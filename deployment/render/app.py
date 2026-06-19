@@ -142,18 +142,17 @@ class ChatRequest(BaseModel):
     system_prompt: Optional[str] = None
 
 # ==========================================
-# 4. TOGETHER AI INFERENCE & FILTER
+# 4. HUGGING FACE SERVERLESS INFERENCE & FILTER
 # ==========================================
-# Make sure TOGETHER_API_KEY is set in your Render Environment Variables!
-together_client = OpenAI(
-    api_key=os.environ.get("TOGETHER_API_KEY", "missing_key"),
-    base_url="https://api.together.xyz/v1",
+# Make sure HF_TOKEN is set in your Render Environment Variables!
+# You can generate a free token at https://huggingface.co/settings/tokens
+hf_client = OpenAI(
+    api_key=os.environ.get("HF_TOKEN", "missing_key"),
+    base_url="https://api-inference.huggingface.co/v1/",
 )
-MODEL_ID = "Qwen/Qwen2.5-7B-Instruct-Turbo"
+MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
 
 def generate_response(messages: List[Dict]) -> str:
-    # Convert vision messages to text-only since we're using a text-only causal LLM API here.
-    # If using a multimodal API like Llama-3.2-Vision, we could pass it directly.
     text_messages = []
     for msg in messages:
         if isinstance(msg['content'], list):
@@ -162,7 +161,7 @@ def generate_response(messages: List[Dict]) -> str:
         else:
             text_messages.append({"role": msg["role"], "content": msg["content"]})
             
-    response = together_client.chat.completions.create(
+    response = hf_client.chat.completions.create(
         model=MODEL_ID,
         messages=text_messages,
         max_tokens=512,
@@ -172,8 +171,6 @@ def generate_response(messages: List[Dict]) -> str:
 
 class ServerlessSocraticFilter:
     def blocks_direct_answer(self, ai_response: str) -> bool:
-        # Instead of a heavy local ML model, we use a tiny, ultra-fast LLM API call!
-        # This requires 0MB of RAM and takes ~200ms.
         prompt = f"""
         Analyze the following response from a tutor to a student.
         Did the tutor directly reveal the correct answer to a problem the student is trying to solve, instead of guiding them?
@@ -182,7 +179,7 @@ class ServerlessSocraticFilter:
         Tutor Response:
         "{ai_response}"
         """
-        response = together_client.chat.completions.create(
+        response = hf_client.chat.completions.create(
             model=MODEL_ID,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=5,
