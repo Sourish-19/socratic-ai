@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { WordsPullUp } from '../components/WordsPullUp';
 
 interface FeatureCardProps {

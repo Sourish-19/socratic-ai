@@ -564,7 +564,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
     console.log("Started voice dictation");
   }, []);
 
-  const handleStopRecording = React.useCallback((duration: number, transcript: string) => {
+  const handleStopRecording = React.useCallback((_duration: number, transcript: string) => {
     setIsRecording(false);
     if (transcript.trim()) {
       setInput(prev => prev + (prev.trim() ? " " : "") + transcript.trim());
