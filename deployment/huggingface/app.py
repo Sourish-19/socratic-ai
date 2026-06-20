@@ -104,19 +104,16 @@ tokenizer = None
 def generate_response(messages: List[Dict]) -> str:
     global model, tokenizer
     if model is None:
-        print("Lazy-loading base model in 4-bit...")
-        from transformers import BitsAndBytesConfig, AutoTokenizer, AutoModelForCausalLM
+        print("Lazy-loading base model in bfloat16 (this is much faster than 4-bit quantization)...")
+        from transformers import AutoTokenizer, AutoModelForCausalLM
         from peft import PeftModel
         import torch
         
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_compute_dtype=torch.bfloat16
-        )
         tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
         base_model = AutoModelForCausalLM.from_pretrained(
             MODEL_ID, 
-            quantization_config=bnb_config
+            torch_dtype=torch.bfloat16,
+            device_map="cuda"
         )
         print("Loading custom Socratic LoRA adapter...")
         model = PeftModel.from_pretrained(base_model, ADAPTER_ID)
