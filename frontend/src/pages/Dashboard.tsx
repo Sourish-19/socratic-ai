@@ -15,10 +15,8 @@ export function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState<FirebaseUser | null>(null);
 
-  const initialId = useRef(Date.now().toString()).current;
-
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [activeSessionId, setActiveSessionId] = useState<string>(initialId);
+  const [activeSessionId, setActiveSessionId] = useState<string>('new');
 
   useEffect(() => {
     if (!user) {
@@ -48,8 +46,23 @@ export function Dashboard() {
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
 
-  // Sidebar state
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // Sidebar state (responsive)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (window.innerWidth >= 768) {
+      setIsSidebarOpen(true);
+    }
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Typing Indicator state
   const [isTyping, setIsTyping] = useState(false);
@@ -256,12 +269,26 @@ export function Dashboard() {
         )}
       </AnimatePresence>
 
+      {/* Mobile Sidebar Backdrop */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 z-40 md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
-      <motion.aside 
-        initial={{ width: 256 }}
-        animate={{ width: isSidebarOpen ? 256 : 0, opacity: isSidebarOpen ? 1 : 0 }}
-        transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-        className={`hidden md:flex flex-col bg-[#101010]/50 backdrop-blur-xl z-10 overflow-hidden relative flex-shrink-0 ${isSidebarOpen ? 'border-r border-white/5' : 'border-r-0'}`}
+      <aside 
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#101010] border-r border-white/5 flex flex-col transition-transform duration-300 md:transition-none md:static md:w-64 md:bg-[#101010]/50 md:backdrop-blur-xl md:z-10 md:border-r md:border-white/5 flex-shrink-0 ${
+          isSidebarOpen 
+            ? 'translate-x-0' 
+            : '-translate-x-full md:hidden'
+        }`}
       >
         <div className="w-64 flex flex-col h-full flex-shrink-0">
           <div className="p-6 flex items-center justify-between">
@@ -296,7 +323,13 @@ export function Dashboard() {
               sortedSessions.map(session => (
                 <div key={session.id} className="relative group">
                   <button 
-                    onClick={() => setActiveSessionId(session.id)}
+                    onClick={() => {
+                      setActiveSessionId(session.id);
+                      // Close sidebar on mobile after choosing a session
+                      if (window.innerWidth < 768) {
+                        setIsSidebarOpen(false);
+                      }
+                    }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-colors text-left pr-10 ${
                       activeSessionId === session.id 
                         ? 'text-[#E1E0CC] bg-white/10 border border-white/5 shadow-sm' 
@@ -411,14 +444,17 @@ export function Dashboard() {
             )}
           </div>
         </div>
-      </motion.aside>
+      </aside>
 
       {/* Main Chat Area */}
       <main className="flex-1 flex flex-col relative z-0 min-h-0">
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#101010]/30 backdrop-blur-md z-10">
           <div className="text-xl font-medium tracking-tight">Socratic*</div>
-          <button className="p-2 text-[#E1E0CC]/60">
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 text-[#E1E0CC]/60 hover:text-[#E1E0CC] transition-colors"
+          >
             <AlignLeft className="w-5 h-5" />
           </button>
         </header>
@@ -514,8 +550,19 @@ export function Dashboard() {
             <PromptInputBox 
               onSend={handleSend}
             />
-            <div className="text-center text-[10px] text-[#E1E0CC]/30 pt-4 font-medium tracking-wide">
-              Your Socratic Tutor will guide you to answers rather than providing them directly.
+            <div className="text-center text-[10px] text-[#E1E0CC]/30 pt-4 font-medium tracking-wide flex flex-col items-center gap-1.5">
+              <span>Your Socratic Tutor will guide you to answers rather than providing them directly.</span>
+              <span>
+                github link :-{' '}
+                <a 
+                  href="https://github.com/Sourish-19/socratic-ai.git" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="hover:underline text-[#E1E0CC]/50 hover:text-[#E1E0CC] transition-colors"
+                >
+                  https://github.com/Sourish-19/socratic-ai.git
+                </a>
+              </span>
             </div>
           </div>
         </div>
