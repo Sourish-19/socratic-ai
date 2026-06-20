@@ -94,8 +94,24 @@ export function Dashboard() {
   // Typing Indicator state
   const [isTyping, setIsTyping] = useState(false);
 
-  const activeSession = sessions.find(s => s.id === activeSessionId);
-  const messages = activeSession?.messages || [];
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isConversationLoading, setIsConversationLoading] = useState(true);
+
+  // Sync messages and conversation loading state
+  useEffect(() => {
+    if (activeSessionId === 'new') {
+      setMessages([]);
+      setIsConversationLoading(false);
+    } else {
+      const activeSession = sessions.find(s => s.id === activeSessionId);
+      if (activeSession) {
+        setMessages(activeSession.messages);
+        setIsConversationLoading(false);
+      } else {
+        setIsConversationLoading(true);
+      }
+    }
+  }, [activeSessionId, sessions]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -503,7 +519,7 @@ export function Dashboard() {
 
         {/* Chat History */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 pb-4 relative z-10 custom-scrollbar">
-          {loading && activeSessionId !== 'new' ? (
+          {isConversationLoading ? (
             <div className="h-full flex flex-col items-center justify-center text-center px-4">
               <MessageLoading />
             </div>
