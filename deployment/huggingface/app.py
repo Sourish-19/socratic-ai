@@ -94,6 +94,14 @@ socratic_filter = SocraticFilter()
 MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
 ADAPTER_ID = "sourishsrivignesh/socratic-qwen25-7b-lora"
 
+from huggingface_hub import snapshot_download
+
+print("Pre-downloading models to disk cache during boot to avoid ZeroGPU timeouts...")
+snapshot_download(MODEL_ID)
+snapshot_download(ADAPTER_ID)
+snapshot_download("facebook/bart-large-mnli")
+print("Pre-downloads complete!")
+
 model = None
 tokenizer = None
 
