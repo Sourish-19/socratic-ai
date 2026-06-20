@@ -142,15 +142,15 @@ class ChatRequest(BaseModel):
     system_prompt: Optional[str] = None
 
 # ==========================================
-# 4. HUGGING FACE SERVERLESS INFERENCE & FILTER
+# 4. GROQ SERVERLESS INFERENCE & FILTER
 # ==========================================
-# Make sure HF_TOKEN is set in your Render Environment Variables!
-# You can generate a free token at https://huggingface.co/settings/tokens
+# Make sure GROQ_API_KEY is set in your Render Environment Variables!
+# You can generate a completely free key at https://console.groq.com/keys
 hf_client = OpenAI(
-    api_key=os.environ.get("HF_TOKEN", "missing_key"),
-    base_url="https://api-inference.huggingface.co/v1/",
+    api_key=os.environ.get("GROQ_API_KEY", "missing_key"),
+    base_url="https://api.groq.com/openai/v1",
 )
-MODEL_ID = "Qwen/Qwen2.5-1.5B-Instruct"
+MODEL_ID = "llama-3.1-8b-instant"
 
 def generate_response(messages: List[Dict]) -> str:
     text_messages = []
