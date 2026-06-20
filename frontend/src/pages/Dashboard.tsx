@@ -353,7 +353,11 @@ export function Dashboard() {
 
           <div className="flex-1 overflow-y-auto px-4 space-y-2 pb-4 scrollbar-none">
             <div className="text-[10px] uppercase tracking-widest text-[#E1E0CC]/40 font-semibold px-2 pt-4 pb-2">Recent</div>
-            {sortedSessions.length === 0 ? (
+            {loading ? (
+              <div className="px-3 py-2 text-sm text-[#E1E0CC]/30 italic animate-pulse">
+                Loading sessions...
+              </div>
+            ) : sortedSessions.length === 0 ? (
               <div className="px-3 py-2 text-sm text-[#E1E0CC]/30 italic">
                 No recent sessions
               </div>
