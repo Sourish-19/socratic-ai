@@ -167,7 +167,9 @@ export function Dashboard() {
       });
 
       const { Client } = await import("@gradio/client");
-      const client = await Client.connect("sourishsrivignesh/Socratic");
+      const customUrl = localStorage.getItem('socratic_backend_url');
+      const backendUrl = customUrl ? customUrl.trim() : "sourishsrivignesh/Socratic";
+      const client = await Client.connect(backendUrl);
       const result = await client.predict("/handle_chat", { request_json: requestPayload });
       
       const parsedData = JSON.parse((result.data as any)[0]);
