@@ -161,13 +161,16 @@ def generate_response(messages: List[Dict]) -> str:
         else:
             text_messages.append({"role": msg["role"], "content": msg["content"]})
             
-    response = hf_client.chat.completions.create(
-        model=MODEL_ID,
-        messages=text_messages,
-        max_tokens=512,
-        temperature=0.7
-    )
-    return response.choices[0].message.content
+    try:
+        response = hf_client.chat.completions.create(
+            model=MODEL_ID,
+            messages=text_messages,
+            max_tokens=512,
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"[Error from Hugging Face API]: {str(e)}"
 
 class ServerlessSocraticFilter:
     def blocks_direct_answer(self, ai_response: str) -> bool:
@@ -179,14 +182,17 @@ class ServerlessSocraticFilter:
         Tutor Response:
         "{ai_response}"
         """
-        response = hf_client.chat.completions.create(
-            model=MODEL_ID,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=5,
-            temperature=0.1
-        )
-        answer = response.choices[0].message.content.strip().lower()
-        return "yes" in answer
+        try:
+            response = hf_client.chat.completions.create(
+                model=MODEL_ID,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=5,
+                temperature=0.1
+            )
+            answer = response.choices[0].message.content.strip().lower()
+            return "yes" in answer
+        except Exception:
+            return False
 
 socratic_filter = ServerlessSocraticFilter()
 
