@@ -119,11 +119,11 @@ def generate_response(messages: List[Dict]) -> str:
         tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
         base_model = AutoModelForCausalLM.from_pretrained(
             MODEL_ID, 
-            torch_dtype=torch.bfloat16,
-            device_map="cuda"
+            torch_dtype=torch.bfloat16
         )
         print("Loading custom Socratic LoRA adapter...")
         model = PeftModel.from_pretrained(base_model, ADAPTER_ID)
+        model.to("cuda")
         
     text_messages = []
     for msg in messages:
@@ -155,7 +155,7 @@ def generate_response(messages: List[Dict]) -> str:
 # ==========================================
 # 4. PURE GRADIO API
 # ==========================================
-@spaces.GPU(duration=60)
+@spaces.GPU(duration=120)
 def handle_chat(request_json: str) -> str:
     try:
         req = json.loads(request_json)
