@@ -32,12 +32,6 @@ export function Footer() {
             <a href="#features" className="hover:text-[#E1E0CC] transition-colors">Features</a>
             <Link to="/login" className="hover:text-[#E1E0CC] transition-colors">Login</Link>
           </div>
-          <div className="flex flex-col gap-4">
-            <a href="#" className="hover:text-[#E1E0CC] transition-colors">Open Source</a>
-            <a href="#" className="hover:text-[#E1E0CC] transition-colors">Research Paper</a>
-            <a href="#" className="hover:text-[#E1E0CC] transition-colors">Hugging Face</a>
-            <a href="#" className="hover:text-[#E1E0CC] transition-colors">GitHub</a>
-          </div>
         </div>
       </motion.div>
 
