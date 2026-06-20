@@ -157,7 +157,8 @@ export function Dashboard() {
     const system_prompt = localStorage.getItem('socratic_system_prompt') || undefined;
 
     try {
-      const API_URL = "https://socratic-ai-in74.onrender.com";
+      // Point directly to the Hugging Face Space running your custom model!
+      const API_URL = "https://sourishsrivignesh-socratic.hf.space";
       const response = await fetch(`${API_URL}/v1/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
