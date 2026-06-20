@@ -120,14 +120,50 @@ class SocraticModel:
         # Check if model already cached in the volume
         base_cache = f"{MODEL_DIR}/base"
         adapter_cache = f"{MODEL_DIR}/adapter"
+        base_marker = f"{MODEL_DIR}/base_download_complete"
+        adapter_marker = f"{MODEL_DIR}/adapter_download_complete"
 
-        if not os.path.exists(f"{base_cache}/config.json"):
+        if not os.path.exists(base_marker):
             print("Downloading base model to persistent volume...")
             snapshot_download(MODEL_ID, local_dir=base_cache)
+            # Write marker only after successful download
+            open(base_marker, "w").close()
+            print("Base model download complete.")
+        else:
+            print("Base model already cached. Skipping download.")
+
+        if not os.path.exists(adapter_marker):
             print("Downloading adapter to persistent volume...")
             snapshot_download(ADAPTER_ID, local_dir=adapter_cache)
+            # Write marker only after successful download
+            open(adapter_marker, "w").close()
+            print("Adapter download complete.")
         else:
-            print("Model already cached in volume. Loading...")
+            print("Adapter already cached. Skipping download.")
+
+        # Always verify and patch the adapter config on boot.
+        # This handles already-cached adapters that might have bad configs.
+        adapter_config_path = f"{adapter_cache}/adapter_config.json"
+        if os.path.exists(adapter_config_path):
+            print("Verifying and patching adapter config...")
+            import inspect
+            from peft import LoraConfig
+            with open(adapter_config_path) as f:
+                adapter_config = json.load(f)
+            
+            sig = inspect.signature(LoraConfig.__init__)
+            valid_keys = set(sig.parameters.keys()) - {'self'}
+            
+            filtered_config = {k: v for k, v in adapter_config.items() if k in valid_keys}
+            
+            removed_keys = set(adapter_config.keys()) - set(filtered_config.keys())
+            if removed_keys:
+                print(f"Patching adapter config. Removing unrecognized config keys: {removed_keys}")
+                with open(adapter_config_path, "w") as f:
+                    json.dump(filtered_config, f, indent=2)
+                print("Adapter config patched successfully.")
+            else:
+                print("Adapter config is already clean.")
 
         print("Loading model into GPU...")
         bnb_config = BitsAndBytesConfig(
@@ -142,6 +178,7 @@ class SocraticModel:
             quantization_config=bnb_config,
             device_map="auto",
         )
+        print("Loading custom Socratic LoRA adapter...")
         self.model = PeftModel.from_pretrained(base_model, adapter_cache)
         self.model.eval()
         print("Model ready!")
