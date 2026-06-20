@@ -100,7 +100,6 @@ tokenizer = None
 # ==========================================
 # 3. HUGGINGFACE ZEROGPU INFERENCE
 # ==========================================
-@spaces.GPU(duration=60)
 def generate_response(messages: List[Dict]) -> str:
     global model, tokenizer
     if model is None:
@@ -148,6 +147,7 @@ def generate_response(messages: List[Dict]) -> str:
 # ==========================================
 # 4. PURE GRADIO API
 # ==========================================
+@spaces.GPU(duration=60)
 def handle_chat(request_json: str) -> str:
     try:
         req = json.loads(request_json)
