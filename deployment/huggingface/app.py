@@ -92,7 +92,7 @@ hint_engine = HintProgressionEngine()
 socratic_filter = SocraticFilter()
 
 MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
-ADAPTER_ID = "sourishsrivignesh/socratic-qwen25-7b-lora"
+ADAPTER_ID = "sourishsrivignesh/Socratic-Tutor-Adapter"
 
 from huggingface_hub import snapshot_download
 
