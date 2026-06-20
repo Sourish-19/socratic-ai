@@ -100,7 +100,7 @@ class HintProgressionEngine:
     gpu="T4",
     volumes={MODEL_DIR: volume},
     timeout=300,
-    container_idle_timeout=60,
+    scaledown_window=60,
     secrets=[modal.Secret.from_name("huggingface-secret")],
 )
 class SocraticModel:
