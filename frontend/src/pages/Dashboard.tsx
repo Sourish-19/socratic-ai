@@ -18,7 +18,14 @@ export function Dashboard() {
 
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
-  const activeSessionId = searchParams.get('session') || 'new';
+
+  // Read session ID directly from window.location to prevent initial render mismatch/flashing
+  const getSessionFromUrl = () => {
+    if (typeof window === 'undefined') return 'new';
+    const params = new URLSearchParams(window.location.search);
+    return params.get('session') || 'new';
+  };
+  const activeSessionId = getSessionFromUrl();
 
   const setActiveSessionId = (id: string) => {
     if (id === 'new') {
