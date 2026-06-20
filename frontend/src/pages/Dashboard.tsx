@@ -157,25 +157,35 @@ export function Dashboard() {
     const system_prompt = localStorage.getItem('socratic_system_prompt') || undefined;
 
     try {
-      // Point directly to the Hugging Face Space running your custom model!
       const API_URL = "https://sourishsrivignesh-socratic.hf.space";
-      const response = await fetch(`${API_URL}/v1/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: currentSessionId,
-          student_id: user.uid,
-          message: message,
-          file_data: fileData,
-          file_type: fileType,
-          system_prompt: system_prompt
-        })
+      const requestPayload = JSON.stringify({
+        session_id: currentSessionId,
+        student_id: user.uid,
+        message: message,
+        file_data: fileData,
+        file_type: fileType,
+        system_prompt: system_prompt
       });
 
-      const data = await response.json();
+      const response = await fetch(`${API_URL}/api/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: [requestPayload] }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.error) throw new Error(result.error);
+      
+      const parsedData = JSON.parse(result.data[0]);
+      if (parsedData.error) throw new Error(parsedData.error);
+      
       setIsTyping(false);
 
-      const assistantMessage: Message = { id: Date.now().toString() + Math.random().toString(), role: 'assistant', content: data.response || "Sorry, I encountered an error. Please try again." };
+      const assistantMessage: Message = { id: Date.now().toString() + Math.random().toString(), role: 'assistant', content: parsedData.response || "Sorry, I encountered an error. Please try again." };
       updateDoc(doc(db, 'users', user.uid, 'sessions', currentSessionId), {
         messages: arrayUnion(assistantMessage)
       }).catch((err: any) => {
