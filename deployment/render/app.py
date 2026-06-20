@@ -150,7 +150,7 @@ hf_client = OpenAI(
     api_key=os.environ.get("HF_TOKEN", "missing_key"),
     base_url="https://api-inference.huggingface.co/v1/",
 )
-MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
+MODEL_ID = "Qwen/Qwen2.5-1.5B-Instruct"
 
 def generate_response(messages: List[Dict]) -> str:
     text_messages = []
