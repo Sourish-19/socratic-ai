@@ -15,6 +15,7 @@ export function Dashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,6 +111,7 @@ export function Dashboard() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      setAuthLoading(false);
       if (!currentUser) {
         navigate('/'); // Redirect to landing if logged out
       }
@@ -272,6 +274,16 @@ export function Dashboard() {
     if (!a.isPinned && b.isPinned) return 1;
     return 0;
   });
+
+  if (authLoading) {
+    return (
+      <div className="w-full min-h-screen bg-black flex items-center justify-center text-[#E1E0CC]">
+        <div className="text-2xl font-medium tracking-tight animate-pulse flex items-center">
+          Socratic<span className="text-[0.4em] relative -top-3">*</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full bg-black text-[#E1E0CC] overflow-hidden selection:bg-white/30 relative">
