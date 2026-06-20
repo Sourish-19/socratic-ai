@@ -168,7 +168,7 @@ export function Dashboard() {
 
       const { Client } = await import("@gradio/client");
       const client = await Client.connect("sourishsrivignesh/Socratic");
-      const result = await client.predict("/predict", { request_json: requestPayload });
+      const result = await client.predict("/handle_chat", { request_json: requestPayload });
       
       const parsedData = JSON.parse(result.data[0]);
       if (parsedData.error) throw new Error(parsedData.error);
