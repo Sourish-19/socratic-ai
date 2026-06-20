@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PromptInputBox } from '../components/ui/ai-prompt-box';
 import { Settings, LogOut, MessageSquare, Plus, AlignLeft, MoreHorizontal, Edit2, Trash2, Pin, PanelLeft, FileText } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged, signOut, type User as FirebaseUser } from 'firebase/auth';
 import { collection, query, onSnapshot, setDoc, updateDoc, deleteDoc, doc, orderBy, arrayUnion } from 'firebase/firestore';
@@ -13,10 +13,20 @@ type Session = { id: string; title: string; messages: Message[]; isPinned?: bool
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [user, setUser] = useState<FirebaseUser | null>(null);
 
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [activeSessionId, setActiveSessionId] = useState<string>('new');
+  const activeSessionId = searchParams.get('session') || 'new';
+
+  const setActiveSessionId = (id: string) => {
+    if (id === 'new') {
+      searchParams.delete('session');
+      setSearchParams(searchParams);
+    } else {
+      setSearchParams({ session: id });
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -29,17 +39,23 @@ export function Dashboard() {
       snapshot.forEach(d => loaded.push({ id: d.id, ...d.data() } as Session));
       
       setSessions(loaded);
-      setActiveSessionId(prev => {
-        if (prev === 'new') return prev; // If user clicked "New Session", keep it
-        if (!loaded.find(s => s.id === prev)) return loaded[0]?.id || 'new';
-        return prev;
-      });
+      
+      const currentActive = searchParams.get('session') || 'new';
+      if (currentActive !== 'new' && !loaded.find(s => s.id === currentActive)) {
+        const fallbackId = loaded[0]?.id || 'new';
+        if (fallbackId === 'new') {
+          searchParams.delete('session');
+          setSearchParams(searchParams);
+        } else {
+          setSearchParams({ session: fallbackId });
+        }
+      }
     }, (error) => {
       console.error("Firestore onSnapshot error:", error);
       alert("Firestore Error: " + error.message + "\nHave you enabled Firestore in your Firebase console?");
     });
     return () => unsubscribe();
-  }, [user]);
+  }, [user, searchParams, setSearchParams]);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   
   // Rename state
