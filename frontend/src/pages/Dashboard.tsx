@@ -17,6 +17,7 @@ export function Dashboard() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
 
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
   const activeSessionId = searchParams.get('session') || 'new';
 
   const setActiveSessionId = (id: string) => {
@@ -31,6 +32,7 @@ export function Dashboard() {
   useEffect(() => {
     if (!user) {
       setSessions([]);
+      setLoading(true);
       return;
     }
     const q = query(collection(db, 'users', user.uid, 'sessions'), orderBy('createdAt', 'desc'));
@@ -39,6 +41,7 @@ export function Dashboard() {
       snapshot.forEach(d => loaded.push({ id: d.id, ...d.data() } as Session));
       
       setSessions(loaded);
+      setLoading(false);
       
       const currentActive = searchParams.get('session') || 'new';
       if (currentActive !== 'new' && !loaded.find(s => s.id === currentActive)) {
@@ -477,7 +480,11 @@ export function Dashboard() {
 
         {/* Chat History */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 pb-4 relative z-10 custom-scrollbar">
-          {messages.length === 0 ? (
+          {loading && activeSessionId !== 'new' ? (
+            <div className="h-full flex flex-col items-center justify-center text-center px-4">
+              <MessageLoading />
+            </div>
+          ) : messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center px-4">
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6">
                 <MessageSquare className="w-5 h-5 text-[#E1E0CC]/60" />
