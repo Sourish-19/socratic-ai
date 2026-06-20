@@ -156,11 +156,32 @@ class ChatRequest(BaseModel):
 # 4. HUGGINGFACE ZEROGPU INFERENCE
 # ==========================================
 MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
-tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
-model = AutoModelForCausalLM.from_pretrained(MODEL_ID, torch_dtype=torch.bfloat16)
+ADAPTER_ID = "sourishsrivignesh/socratic-qwen25-7b-lora"
+
+model = None
+tokenizer = None
 
 @spaces.GPU(duration=60)
 def generate_response(messages: List[Dict]) -> str:
+    global model, tokenizer
+    if model is None:
+        print("Lazy-loading base model in 4-bit...")
+        from transformers import BitsAndBytesConfig, AutoTokenizer, AutoModelForCausalLM
+        from peft import PeftModel
+        import torch
+        
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.bfloat16
+        )
+        tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+        base_model = AutoModelForCausalLM.from_pretrained(
+            MODEL_ID, 
+            quantization_config=bnb_config
+        )
+        print("Loading custom Socratic LoRA adapter...")
+        model = PeftModel.from_pretrained(base_model, ADAPTER_ID)
+        
     # Convert vision messages to text-only since HF Spaces ZeroGPU with causal LM doesn't support multimodal natively easily
     text_messages = []
     for msg in messages:
@@ -175,7 +196,7 @@ def generate_response(messages: List[Dict]) -> str:
         tokenize=False,
         add_generation_prompt=True
     )
-    model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
+    model_inputs = tokenizer([text], return_tensors="pt").to("cuda")
     
     generated_ids = model.generate(
         **model_inputs,
