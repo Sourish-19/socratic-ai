@@ -157,7 +157,6 @@ export function Dashboard() {
     const system_prompt = localStorage.getItem('socratic_system_prompt') || undefined;
 
     try {
-      const API_URL = "https://sourishsrivignesh-socratic.hf.space";
       const requestPayload = JSON.stringify({
         session_id: currentSessionId,
         student_id: user.uid,
@@ -167,18 +166,9 @@ export function Dashboard() {
         system_prompt: system_prompt
       });
 
-      const response = await fetch(`${API_URL}/api/predict`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: [requestPayload] }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.error) throw new Error(result.error);
+      const { Client } = await import("@gradio/client");
+      const client = await Client.connect("sourishsrivignesh/Socratic");
+      const result = await client.predict("/predict", { request_json: requestPayload });
       
       const parsedData = JSON.parse(result.data[0]);
       if (parsedData.error) throw new Error(parsedData.error);
