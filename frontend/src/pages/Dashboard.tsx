@@ -170,7 +170,7 @@ export function Dashboard() {
       const client = await Client.connect("sourishsrivignesh/Socratic");
       const result = await client.predict("/handle_chat", { request_json: requestPayload });
       
-      const parsedData = JSON.parse(result.data[0]);
+      const parsedData = JSON.parse((result.data as any)[0]);
       if (parsedData.error) throw new Error(parsedData.error);
       
       setIsTyping(false);
