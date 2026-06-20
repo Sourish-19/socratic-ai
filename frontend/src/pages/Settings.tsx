@@ -18,7 +18,6 @@ export function Settings() {
   
 
   const [systemPrompt, setSystemPrompt] = useState('');
-  const [backendUrl, setBackendUrl] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -35,7 +34,6 @@ export function Settings() {
     
 
     setSystemPrompt(localStorage.getItem('socratic_system_prompt') || "");
-    setBackendUrl(localStorage.getItem('socratic_backend_url') || "");
 
     return () => unsubscribe();
   }, [navigate]);
@@ -59,12 +57,6 @@ export function Settings() {
         localStorage.setItem('socratic_system_prompt', systemPrompt);
       } else {
         localStorage.removeItem('socratic_system_prompt');
-      }
-
-      if (backendUrl) {
-        localStorage.setItem('socratic_backend_url', backendUrl);
-      } else {
-        localStorage.removeItem('socratic_backend_url');
       }
 
       navigate('/dashboard');
@@ -196,18 +188,6 @@ export function Settings() {
                   placeholder="Leave blank to use the default 7-stage Socratic engine..."
                   className="w-full bg-black/50 border border-white/5 rounded-xl p-4 text-[#E1E0CC] placeholder:text-[#E1E0CC]/30 focus:ring-2 focus:ring-inset focus:ring-[#E1E0CC]/20 outline-none transition-all resize-none text-sm leading-relaxed"
                 />
-              </div>
-
-              <div className="space-y-1.5 pt-2">
-                <label className="text-sm font-medium text-[#E1E0CC]">Custom Backend API URL</label>
-                <input
-                  type="text"
-                  value={backendUrl}
-                  onChange={(e) => setBackendUrl(e.target.value)}
-                  placeholder="e.g. https://abc123xyz.gradio.live (Leave blank for default Hugging Face Space)"
-                  className="w-full bg-black/50 border border-white/5 rounded-xl h-11 px-4 text-[#E1E0CC] placeholder:text-[#E1E0CC]/30 focus:ring-2 focus:ring-inset focus:ring-[#E1E0CC]/20 outline-none transition-all text-sm"
-                />
-                <p className="text-xs text-[#E1E0CC]/40">Use this if you are hosting your AI on Kaggle, Google Colab, or a local machine.</p>
               </div>
             </section>
 

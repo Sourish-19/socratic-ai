@@ -100,14 +100,10 @@ export function Dashboard() {
     
     // Process attached file
     let fileData = null;
-    let fileType = null;
     let attachedFile: any = undefined;
     if (files && files.length > 0) {
       const file = files[0];
       const isImage = file.type.startsWith("image/");
-      const extMatch = file.name.match(/\.([^.]+)$/);
-      if (extMatch) fileType = extMatch[1].toLowerCase();
-      else if (file.type) fileType = file.type.split('/')[1];
       
       fileData = await new Promise<string>((resolve) => {
         const reader = new FileReader();
@@ -157,22 +153,21 @@ export function Dashboard() {
     const system_prompt = localStorage.getItem('socratic_system_prompt') || undefined;
 
     try {
-      const requestPayload = JSON.stringify({
-        session_id: currentSessionId,
-        student_id: user.uid,
-        message: message,
-        file_data: fileData,
-        file_type: fileType,
-        system_prompt: system_prompt
+      // Permanent Modal.com serverless GPU endpoint
+      const MODAL_URL = "https://sourishsrivignesh--socratic-ai-socraticmodel-chat.modal.run";
+
+      const response = await fetch(MODAL_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: currentSessionId,
+          message: message,
+          system_prompt: system_prompt,
+        }),
       });
 
-      const { Client } = await import("@gradio/client");
-      const customUrl = localStorage.getItem('socratic_backend_url');
-      const backendUrl = customUrl ? customUrl.trim() : "sourishsrivignesh/Socratic";
-      const client = await Client.connect(backendUrl);
-      const result = await client.predict("/handle_chat", { request_json: requestPayload });
-      
-      const parsedData = JSON.parse((result.data as any)[0]);
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
+      const parsedData = await response.json();
       if (parsedData.error) throw new Error(parsedData.error);
       
       setIsTyping(false);
