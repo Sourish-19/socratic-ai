@@ -612,19 +612,8 @@ export function Dashboard() {
             <PromptInputBox 
               onSend={handleSend}
             />
-            <div className="text-center text-[10px] text-[#E1E0CC]/30 pt-4 font-medium tracking-wide flex flex-col items-center gap-1.5">
-              <span>Your Socratic Tutor will guide you to answers rather than providing them directly.</span>
-              <span>
-                github link :-{' '}
-                <a 
-                  href="https://github.com/Sourish-19/socratic-ai.git" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="hover:underline text-[#E1E0CC]/50 hover:text-[#E1E0CC] transition-colors"
-                >
-                  https://github.com/Sourish-19/socratic-ai.git
-                </a>
-              </span>
+            <div className="text-center text-[10px] text-[#E1E0CC]/30 pt-4 font-medium tracking-wide">
+              Your Socratic Tutor will guide you to answers rather than providing them directly.
             </div>
           </div>
         </div>
