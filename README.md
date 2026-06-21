@@ -1,41 +1,40 @@
 # Socratic AI 🦉
 
-Socratic AI is a modern, privacy-focused AI tutor. Instead of handing out direct answers and short-circuiting the learning process, it uses the Socratic method to guide students through problems. It encourages critical thinking, hypothesis generation, and deep conceptual understanding.
+Socratic AI is a modern, privacy-focused educational artificial intelligence (AI) tutor. Instead of handing out direct answers and short-circuiting the learning process, it uses the Socratic method to guide students through problems. It encourages critical thinking, hypothesis generation, and deep conceptual understanding.
 
-This project uses a fine-tuned LLM (`Qwen2.5-7B-Instruct-Turbo`) alongside a multi-stage **Hint Progression Engine** and a **Zero-Shot Socratic Filter** to ensure the AI never leaks the final answer before the student earns it.
+This project deploys a custom, fine-tuned Large Language Model (LLM)—specifically your custom **Socratic-Tutor-Adapter** layered on top of the **Qwen2.5-7B-Instruct** base model—directly on serverless Graphics Processing Units (GPUs) for zero running cost.
 
 ---
 
 ## 🏗️ Monorepo Architecture
 
-This project is structured as a modern monorepo, cleanly separating the web interface, the local API, production deployment code, and the underlying AI training infrastructure.
+This project is structured as a monorepo separating the web interface, local development server, production serverless deployment, and training infrastructure.
 
 ```text
 socratic-ai/
-├── frontend/                   # 🖥️ The React/Vite web application
-├── backend/                    # ⚙️ The local FastAPI server and Socratic layer
+├── frontend/                   # 🖥️ React/Vite web application (TypeScript + Tailwind CSS)
+├── backend/                    # ⚙️ Local FastAPI server and Socratic session cache
 ├── deployment/                 
-│   └── render/                 # 🚀 The lightweight production backend (Together AI + Render)
-├── ai_training/                # 🧠 Custom model training scripts, datasets, and notebooks
-└── logs/                       # 📝 Logs generated during model training/eval
+│   └── modal/                  # 🚀 Serverless GPU Deployment code (Modal.com)
+├── ai_training/                # 🧠 Custom model training scripts (SFT and DPO notebooks)
+└── logs/                       # 📝 Logs generated during model training and evaluation
 ```
 
 ---
 
 ## 💻 Local Development Setup
 
-To run Socratic AI locally, you need to run both the Python backend and the React frontend.
+To run Socratic AI locally, you can run both the Python backend and the React frontend.
 
 ### 1. Start the Backend
 The backend requires Python 3.10+ and uses a local SQLite database (`diskcache`) to manage session state.
 
 1. Open a terminal in the root directory.
-2. Activate your virtual environment (if you have one).
-3. Install the root requirements:
+2. Activate your virtual environment:
    ```bash
    pip install -r requirements.txt
    ```
-4. Start the local server:
+3. Start the local server:
    ```bash
    cd backend
    python src/server.py
@@ -43,13 +42,13 @@ The backend requires Python 3.10+ and uses a local SQLite database (`diskcache`)
    *The backend will now be running on `http://localhost:8000`.*
 
 ### 2. Start the Frontend
-The frontend is a React application built with Vite and Tailwind CSS.
+The frontend is a React Single Page Application (SPA) built with Vite and Tailwind CSS.
 
 1. Open a new terminal and navigate to the frontend directory:
    ```bash
    cd frontend
    ```
-2. Install the Node dependencies:
+2. Install the dependencies:
    ```bash
    npm install
    ```
@@ -61,32 +60,51 @@ The frontend is a React application built with Vite and Tailwind CSS.
 
 ---
 
-## 🚀 Zero-Cost Production Deployment
+## 🚀 Serverless Production Deployment (Modal.com + Vercel)
 
-You can deploy this entire application to the internet for **$0/month** using Vercel, Render, and Together AI.
+The production stack is designed to run completely on free tiers, serving your custom-trained LoRA (Low-Rank Adaptation) model weights directly on cloud GPUs.
 
-### The API Pivot (Backend)
-Because loading a 15GB Language Model requires expensive GPUs, the production deployment in `deployment/render/app.py` acts as a lightweight proxy. It uses the `openai` Python SDK to securely forward requests to the **Together AI** server farm, which provides extremely fast, free inference for the open-source `Qwen2.5-7B-Instruct-Turbo` model. 
+### 1. Deploy the Backend to Modal
+We deploy the model to [Modal.com](https://modal.com) as a serverless container class. It automatically provisions a cloud GPU (NVIDIA T4) on demand, loads your weights, and sleeps after 60 seconds of inactivity to stay within Modal's $30/month free tier.
 
-Additionally, the heavy local ML `SocraticFilter` has been swapped for a zero-RAM **Serverless LLM Filter**, allowing the backend to run perfectly on Render's 512MB free tier.
+1. Install the Modal Command Line Interface (CLI):
+   ```bash
+   pip install modal
+   ```
+2. Authenticate the CLI with your Modal account:
+   ```bash
+   modal token new
+   ```
+3. Create a Hugging Face secret in your Modal dashboard named `huggingface-secret` with your `HF_TOKEN`.
+4. Deploy the backend code:
+   ```bash
+   $env:PYTHONUTF8=1; $env:PYTHONIOENCODING="utf-8"
+   modal deploy deployment/modal/app.py
+   ```
+   *This outputs your permanent backend chat URL:*
+   `https://sourishsrivignesh--socratic-ai-socraticmodel-chat.modal.run`
 
-### Deployment Steps:
-1. **GitHub:** Push this entire repository to your personal GitHub account.
-2. **Together AI API:** Create a free account at [Together AI](https://api.together.ai/) and generate an API Key.
-3. **Deploy Backend (Render):**
-   - Create a new **Free Web Service** on [Render.com](https://render.com/).
-   - Connect your GitHub repo.
-   - **Root Directory:** `deployment/render`
-   - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `uvicorn app:app --host 0.0.0.0 --port $PORT`
-   - **Environment Variables:** Add `TOGETHER_API_KEY` with your API key.
-4. **Deploy Frontend (Vercel):**
-   - Create a new **Project** on [Vercel](https://vercel.com/) and import your GitHub repo.
-   - **Root Directory:** `frontend`
-   - **Environment Variables:** Add `VITE_API_URL` and set it to your new Render backend URL (e.g., `https://socratic-backend.onrender.com`).
+### 2. Deploy the Frontend to Vercel
+The frontend React app is deployed directly on Vercel.
+
+1. Connect your GitHub repository to Vercel.
+2. Set the root directory to `frontend`.
+3. Build & Deploy. Vercel automatically reads the [vercel.json](file:///c:/Users/Sourish/Documents/Projects/Socratic%20AI/frontend/public/vercel.json) configuration to handle Single Page Application (SPA) routing rewrites, preventing `404 Not Found` errors when refreshing or duplicating tabs.
 
 ---
 
-## 🧠 AI Training Infrastructure
+## 🧠 Socratic Alignment & Technical Pipeline
 
-If you wish to re-train the underlying models, explore the `ai_training/` directory. It contains all the necessary datasets, training scripts (Supervised Fine-Tuning and Direct Preference Optimization), and evaluation metrics used to create the Socratic behavior.
+The Socratic tutoring behavior is enforced through a hybrid neural and heuristic pipeline:
+
+### 1. Quantized Low-Rank Adaptation (QLoRA)
+To serve the 15-Gigabyte (GB) model efficiently on a budget T4 GPU, we load the base model in 4-bit NormalFloat (NF4) precision using double quantization. We overlay the custom-trained LoRA adapter (`sourishsrivignesh/Socratic-Tutor-Adapter`) onto the attention and MLP layers.
+
+### 2. Direct Preference Optimization (DPO)
+To prevent the model from leaking direct answers when students get frustrated, the model was aligned using Direct Preference Optimization (DPO). The model was trained on preference pairs containing chosen Socratic guidance and rejected direct-answer responses, optimizing the policy weights directly.
+
+### 3. Dynamic Configuration Patching
+Adapters trained with the `unsloth` library inject custom configuration parameters (e.g. `arrow_config`, `alora_invocation_tokens`) that standard Hugging Face PEFT doesn't support. The Modal container uses runtime python reflection on container boot to filter out unrecognized arguments dynamically, preventing cold-start crashes.
+
+### 4. Stateful Dialogue Scaffolding
+A heuristic state machine tracks user messages. By scoring response length and linguistic confidence markers (e.g. *"because"*, *"therefore"*), the engine determines the student's cognitive state and progresses the conversation through 7 structured scaffolding stages.
